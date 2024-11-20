@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Handling UI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+        .status {
+            margin-bottom: 20px;
+        }
+        .status span {
+            font-weight: bold;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            margin-right: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .output {
+            margin-bottom: 20px;
+        }
+        canvas {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Handling and Calibration</h1>
+        
+        <!-- Display Calibration Status -->
+        <div class="status">
+            <p>Calibration Status: <span id="calibration-status">Not Started</span></p>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="controls">
+            <button onclick="startCalibration()">Start Calibration</button>
+            <button onclick="stopCalibration()">Stop Calibration</button>
+            <button onclick="resetCalibration()">Reset Calibration</button>
+        </div>
+
+        <!-- Display Values -->
+        <div class="output">
+            <p>Average Voltage: <span id="avg-voltage">0</span> V</p>
+            <p>Force Value: <span id="force-value">0</span> N</p>
+        </div>
+
+        <!-- Resistance Change Graph -->
+        <canvas id="resistance-chart" width="800" height="400"></canvas>
+    </div>
+
+    <script>
+        // Variables to hold state
+        let calibrationStatus = "Not Started";
+        let resistanceData = [];
+        let chart = null;
+
+        // Chart.js Configuration
+        function setupChart() {
+            const ctx = document.getElementById('resistance-chart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Resistance Change (Ohms)',
+                        data: [],
+                        borderColor: 'blue',
+                        borderWidth: 2,
+                        fill: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time (s)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Resistance (Ohms)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Functions to update the UI
+        function updateStatus(newStatus) {
+            calibrationStatus = newStatus;
+            document.getElementById('calibration-status').innerText = calibrationStatus;
+        }
+
+        function updateValues(avgVoltage, forceValue) {
+            document.getElementById('avg-voltage').innerText = avgVoltage.toFixed(2);
+            document.getElementById('force-value').innerText = forceValue.toFixed(2);
+        }
+
+        function updateGraph(newResistance) {
+            const currentTime = chart.data.labels.length;
+            chart.data.labels.push(currentTime);
+            chart.data.datasets[0].data.push(newResistance);
+            chart.update();
+        }
+
+        // Calibration Control Functions
+        function startCalibration() {
+            updateStatus("In Process");
+            // Mock data generation
+            const interval = setInterval(() => {
+                if (calibrationStatus !== "In Process") {
+                    clearInterval(interval);
+                    return;
+                }
+                const resistance = Math.random() * 100; // Random resistance value
+                const avgVoltage = Math.random() * 5;  // Random average voltage
+                const forceValue = resistance * 0.1;  // Mock force calculation
+                updateValues(avgVoltage, forceValue);
+                updateGraph(resistance);
+            }, 1000);
+        }
+
+        function stopCalibration() {
+            updateStatus("Stopped");
+        }
+
+        function resetCalibration() {
+            updateStatus("Not Started");
+            resistanceData = [];
+            chart.data.labels = [];
+            chart.data.datasets[0].data = [];
+            chart.update();
+            updateValues(0, 0);
+        }
+
+        // Initialize chart
+        window.onload = setupChart;
+    </script>
+</body>
+</html>
